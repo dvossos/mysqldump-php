@@ -11,6 +11,11 @@
             "name" : "Diego Torres",
             "homepage": "https://github.com/ifsnop",
             "role": "Developer"
+        },
+        {
+            "name" : "Dimitris Vossos",
+            "homepage": "https://github.com/dvossos",
+            "role": "Developer"
         }
     ],
     "require": {
