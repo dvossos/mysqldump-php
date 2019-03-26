@@ -110,6 +110,8 @@ class Mysqldump
     private $tableWheres = array();
     private $tableLimits = array();
 
+	private $listeners = array();
+	
     /**
      * Constructor of Mysqldump. Note that in the case of an SQLite database
      * connection, the filename must be in the $db parameter.
@@ -641,6 +643,21 @@ class Mysqldump
 
         return in_array($table, $arr) || $match;
     }
+	
+	public function attachListener(callable $listener)
+	{
+		if (in_array($listener, $this->listeners, true)) {
+			return;
+		}
+		$this->listeners[] = $listener;
+	}
+	
+	public function notify($hasFinished, $currentValue)
+	{
+		array_walk($this->listeners, function ($listener) use ($hasFinished, $currentValue) {
+			$listener($hasFinished, $currentValue);
+		});
+	}
 
     /**
      * Exports all the tables selected from database
@@ -649,8 +666,12 @@ class Mysqldump
      */
     private function exportTables()
     {
+		$idx = 0;
+		$countTables = count($this->tables);
+		
         // Exporting tables one by one
         foreach ($this->tables as $table) {
+			$idx++;
             if ($this->matches($table, $this->dumpSettings['exclude-tables'])) {
                 continue;
             }
@@ -663,7 +684,9 @@ class Mysqldump
             } else {
                 $this->listValues($table);
             }
+			$this->notify(false, round( ($idx * 100 / $countTables), 2));
         }
+		$this->notify(true, 100);
     }
 
     /**
